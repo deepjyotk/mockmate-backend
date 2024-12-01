@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: "userdb"
+      POSTGRES_USER: "myuser"
+      POSTGRES_PASSWORD: "mypassword"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./postgres_data:/var/lib/postgresql/data"
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  auth-service:
+    image: auth-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/userdb"
+      SPRING_DATASOURCE_USERNAME: "myuser"
+      SPRING_DATASOURCE_PASSWORD: "mypassword"
+    depends_on:
+      postgres:
+        condition: service_healthy

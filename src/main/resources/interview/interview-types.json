@@ -1,0 +1,16 @@
+[
+    {
+      "id": 1,
+      "type": "Behavioral",
+      "description": "Focuses on assessing soft skills, past experiences, and cultural fit.",
+      "durationMinutes": 45,
+      "time": [ "13:00:00Z", "17:00:00Z", "21:00:00Z", "01:00:00Z"]
+    },
+    {
+      "id": 2,
+      "type": "Software Engineering",
+      "description": "Evaluates technical knowledge, problem-solving, and coding skills.",
+      "durationMinutes": 60,
+      "time": [ "13:00:00Z", "15:00:00Z", "17:00:00Z", "19:00:00Z", "21:00:00Z", "23:00:00Z", "01:00:00Z"]
+    }
+]

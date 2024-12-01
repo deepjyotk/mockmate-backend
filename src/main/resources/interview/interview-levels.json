@@ -1,0 +1,17 @@
+[
+    {
+      "id": 1,
+      "level": "Beginner",
+      "description": "Covers basic concepts, ideal for entry-level candidates."
+    },
+    {
+      "id": 2,
+      "level": "Intermediate",
+      "description": "Covers moderately complex topics for mid-level candidates."
+    },
+    {
+      "id": 3,
+      "level": "Advanced",
+      "description": "Focuses on advanced and expert-level concepts."
+    }
+]
