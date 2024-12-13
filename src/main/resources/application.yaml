@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   datasource:
     url: "${DB_URL}"
@@ -13,11 +13,6 @@ spring:
       globally_quoted_identifiers: true
     generate-ddl: true
     show-sql: true
-
-  data:
-    mongodb:
-      uri: "${MONGO_URI}"
-      database: "${MONGO_DATABASE}"
 
 zego:
   app-id: "${ZEGO_APP_ID}"

@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/questions")
+@RequestMapping("/api/questions")
 
 public class QuestionController {
 
@@ -69,8 +69,8 @@ public class QuestionController {
 
 
     @GetMapping("/{questionId}")
-    public ResponseEntity<QuestionResponseDto> getQuestionById(@PathVariable Long questionId) {
+    public ResponseEntity<ResponseDto<QuestionResponseDto>> getQuestionById(@PathVariable Long questionId) {
         QuestionResponseDto responseDto = questionService.getQuestionById(questionId);
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(new ResponseDto<>(responseDto, HttpStatus.OK));
     }
 }

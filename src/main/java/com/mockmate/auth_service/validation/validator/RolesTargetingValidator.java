@@ -10,6 +10,7 @@ import java.util.List;
 public class RolesTargetingValidator implements ConstraintValidator<ValidRolesTargeting, List<String>> {
 
     private static final List<String> ALLOWED_ROLES = Arrays.asList(
+            "Software Engineering",
             "Computer Science",
             "Management",
             "Cyber Security",

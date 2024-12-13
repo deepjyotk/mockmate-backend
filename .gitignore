@@ -38,6 +38,10 @@ logs/
 # VS Code
 .vscode/
 
+postgres_data
+postgres_data/*
+
+
 # OS generated files
 .DS_Store
 Thumbs.db

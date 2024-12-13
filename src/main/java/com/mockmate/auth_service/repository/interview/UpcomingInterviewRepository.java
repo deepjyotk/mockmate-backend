@@ -14,5 +14,7 @@ public interface UpcomingInterviewRepository extends JpaRepository<UpcomingInter
 
     boolean existsBySlotIdAndUserId(Long slotId, Long userId);
 
+    UpcomingInterviews findByUserIdAndRoomIDHash(Long userId, String roomIDHash);
+
 
 }

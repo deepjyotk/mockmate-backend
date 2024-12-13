@@ -105,12 +105,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WaitingForPeerException.class)
     public ResponseEntity<ExceptionResponseDto> handleWaitingForPeerException(WaitingForPeerException ex) {
+        Map<String, String> additionalDetails = new HashMap<>();
+        additionalDetails.put("exceptionType", ex.getClass().getSimpleName());
         ExceptionResponseDto exceptionResponseDto = new ExceptionResponseDto(
                 "7",
                 "User is currently waiting for a peer to join",
                 HttpStatus.ACCEPTED.value(),
                 HttpStatus.ACCEPTED.getReasonPhrase(),
-                null,
+                additionalDetails,
                 ex.getMessage(),
                 ex.getLocalizedMessage()
         );
@@ -119,12 +121,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoPeerMatchedYetException.class)
     public ResponseEntity<ExceptionResponseDto> handleNoPeerMatchedYetException(NoPeerMatchedYetException ex) {
+        Map<String, String> additionalDetails = new HashMap<>();
+        additionalDetails.put("exceptionType", ex.getClass().getSimpleName());
         ExceptionResponseDto exceptionResponseDto = new ExceptionResponseDto(
                 "8",
                 "No peer has been matched for the user yet",
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
-                null,
+                additionalDetails,
                 ex.getMessage(),
                 ex.getLocalizedMessage()
         );
@@ -133,30 +137,55 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PeerWaitingThresholdReachedException.class)
     public ResponseEntity<ExceptionResponseDto> handlePeerWaitingThresholdReachedException(PeerWaitingThresholdReachedException ex) {
+        Map<String, String> additionalDetails = new HashMap<>();
+        additionalDetails.put("exceptionType", ex.getClass().getSimpleName());
+
         ExceptionResponseDto exceptionResponseDto = new ExceptionResponseDto(
                 "9",
                 "The waiting threshold for a peer has been exceeded",
                 HttpStatus.REQUEST_TIMEOUT.value(),
                 HttpStatus.REQUEST_TIMEOUT.getReasonPhrase(),
-                null,
+                additionalDetails,
                 ex.getMessage(),
                 ex.getLocalizedMessage()
         );
         return new ResponseEntity<>(exceptionResponseDto, HttpStatus.REQUEST_TIMEOUT);
     }
 
+    @ExceptionHandler(CouldNotMatchInterviewFailureException.class)
+    public ResponseEntity<ExceptionResponseDto> handlePeerWaitingThresholdReachedException(CouldNotMatchInterviewFailureException ex) {
+        Map<String, String> additionalDetails = new HashMap<>();
+        additionalDetails.put("exceptionType", ex.getClass().getSimpleName());
+
+        ExceptionResponseDto exceptionResponseDto = new ExceptionResponseDto(
+                "9",
+                "The waiting threshold for a peer has been exceeded",
+                HttpStatus.REQUEST_TIMEOUT.value(),
+                HttpStatus.REQUEST_TIMEOUT.getReasonPhrase(),
+                additionalDetails,
+                ex.getMessage(),
+                ex.getLocalizedMessage()
+        );
+        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.REQUEST_TIMEOUT);
+    }
+
+
     @ExceptionHandler(NotAllowedException.class)
     public ResponseEntity<ExceptionResponseDto> handleNotAllowedException(NotAllowedException ex) {
+        Map<String, String> additionalDetails = new HashMap<>();
+        additionalDetails.put("exceptionType", ex.getClass().getSimpleName());
+
         ExceptionResponseDto exceptionResponseDto = new ExceptionResponseDto(
                 "10", // Unique error code
                 "Operation not allowed",
                 HttpStatus.FORBIDDEN.value(), // Use appropriate status code, e.g., 403 Forbidden
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                null, // No additional details for now
+                additionalDetails, // No additional details for now
                 ex.getMessage(),
                 ex.getLocalizedMessage()
         );
         return new ResponseEntity<>(exceptionResponseDto, HttpStatus.FORBIDDEN);
+
     }
 
 }

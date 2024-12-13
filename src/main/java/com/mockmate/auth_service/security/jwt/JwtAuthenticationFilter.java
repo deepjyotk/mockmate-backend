@@ -6,8 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,11 +13,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
-@Component
-@Order(Ordered.LOWEST_PRECEDENCE) // Set to lowest precedence
 
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -27,6 +25,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private final CustomUserDetailsService customUserDetailsService;
+
+
+    private static final List<String> EXCLUDED_PATHS = List.of(
+            "/api/users/sample-get",
+            "/api/auth/register",
+            "/api/auth/login",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/error"
+            // Add other public endpoints as needed
+    );
 
     public JwtAuthenticationFilter(JwtTokenUtil jwtUtils, CustomUserDetailsService customUserDetailsService) {
         this.jwtUtils = jwtUtils;
@@ -36,15 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        if ("WebSocket".equalsIgnoreCase(request.getHeader("Upgrade"))) {
+        if (isExcluded(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
-        // Bypass WebSocket handshake requests
-//        if ("WebSocket".equalsIgnoreCase(request.getHeader("Upgrade"))) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -70,5 +75,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Checks if the given path is excluded from JWT processing.
+     *
+     * @param path the request URI
+     * @return true if the path is excluded, false otherwise
+     */
+    private boolean isExcluded(String path) {
+        // You can use AntPathMatcher for pattern matching if needed
+        for (String excludedPath : EXCLUDED_PATHS) {
+            if (path.matches(excludedPath.replace("**", ".*"))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

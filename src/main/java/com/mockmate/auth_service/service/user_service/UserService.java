@@ -1,6 +1,9 @@
 package com.mockmate.auth_service.service.user_service;
 
-import com.mockmate.auth_service.dto.interview.*;
+import com.mockmate.auth_service.dto.interview.InitResponseDto;
+import com.mockmate.auth_service.dto.interview.InterviewDto;
+import com.mockmate.auth_service.dto.interview.InterviewLevelDto;
+import com.mockmate.auth_service.dto.interview.SlotDto;
 import com.mockmate.auth_service.dto.login.LoginRequestDto;
 import com.mockmate.auth_service.dto.login.LoginResponseDto;
 import com.mockmate.auth_service.dto.register.RegisterRequestDto;
@@ -185,8 +188,21 @@ public class UserService implements IUserService {
 
             List<SlotDto> slotDTOs = new ArrayList<>();
 
+            ZonedDateTime currentDateTime = ZonedDateTime.now(ZoneOffset.UTC);
             if (slots != null) {
                 slotDTOs = slots.stream()
+                        .filter(slot -> {
+                            LocalDate date = slot.getInterviewDate();
+                            String time = slot.getInterviewTypeTime().getTime();
+
+                            // Parse time and combine with date
+                            LocalTime localTime = LocalTime.parse(time, DateTimeFormatter.ISO_TIME);
+                            LocalDateTime localDateTime = LocalDateTime.of(date, localTime);
+                            ZonedDateTime utcDateTime = ZonedDateTime.of(localDateTime, ZoneOffset.UTC);
+
+                            // Only keep slots that are in the future
+                            return utcDateTime.compareTo(currentDateTime) >= 0;
+                        })
                         .map(slot -> {
                             Long slotId = slot.getSlotId();
                             LocalDate date = slot.getInterviewDate();
@@ -196,6 +212,7 @@ public class UserService implements IUserService {
                             LocalTime localTime = LocalTime.parse(time, DateTimeFormatter.ISO_TIME);
                             LocalDateTime localDateTime = LocalDateTime.of(date, localTime);
                             ZonedDateTime utcDateTime = ZonedDateTime.of(localDateTime, ZoneOffset.UTC);
+
                             String slotDateTimeStr = utcDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
                             return new SlotDto(slotId, slotDateTimeStr);

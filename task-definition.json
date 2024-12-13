@@ -1,0 +1,110 @@
+{
+  "family": "my-web-api-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::533267413906:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::533267413906:role/ecsTaskExecutionRole",
+  "enableExecuteCommand": true,
+  "containerDefinitions": [
+    {
+      "name": "postgres",
+      "image": "postgres:latest",
+      "essential": true,
+      "environment": [
+        { "name": "POSTGRES_DB", "value": "userdb" },
+        { "name": "POSTGRES_USER", "value": "myuser" },
+        { "name": "POSTGRES_PASSWORD", "value": "mypassword" }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 5432,
+          "protocol": "tcp"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "pg_isready -U myuser -d userdb"],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/my-web-api-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "postgres"
+        }
+      }
+    },
+    {
+      "name": "pgadmin",
+      "image": "dpage/pgadmin4:latest",
+      "essential": true,
+      "environment": [
+        { "name": "PGADMIN_DEFAULT_EMAIL", "value": "admin@example.com" },
+        { "name": "PGADMIN_DEFAULT_PASSWORD", "value": "admin" }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "dependsOn": [
+        {
+          "containerName": "postgres",
+          "condition": "START"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/my-web-api-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "pgadmin"
+        }
+      }
+    },
+    {
+      "name": "auth-service",
+      "image": "533267413906.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "DB_URL", "value": "jdbc:postgresql://postgres:5432/userdb" },
+        { "name": "DB_USERNAME", "value": "myuser" },
+        { "name": "DB_PASSWORD", "value": "mypassword" },
+        { "name": "MONGO_URI", "value": "mongodb://mongodb:27017" },
+        { "name": "MONGO_DATABASE", "value": "mockmatedb" },
+        { "name": "ZEGO_APP_ID", "value": "1908050995" },
+        { "name": "ZEGO_SERVER_SECRET", "value": "ba58593e1e1abdc8c1fd6f1fcffc5957" },
+        { "name": "AWS_ACCESS_KEY_ID", "value": "AKIAXYKJW7OJAQHUAKHT" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "value": "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" },
+        { "name": "AWS_S3_BUCKET", "value": "mockmate-questions-bucket" },
+        { "name": "AWS_REGION", "value": "us-east-1" }
+      ],
+      "dependsOn": [
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/my-web-api-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "auth-service"
+        }
+      }
+    }
+  ]
+}

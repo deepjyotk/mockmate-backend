@@ -21,9 +21,11 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/sample-get")
-    public String getCurrentUser() {
+    public ResponseEntity<String> getCurrentUser() {
         // Logic to return current user details
-        return "User details";
+
+        String res = "OKAY";
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping("/init_data")

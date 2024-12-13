@@ -1,8 +1,10 @@
 package com.mockmate.auth_service.controller;
 
 import com.mockmate.auth_service.dto.ResponseDto;
+import com.mockmate.auth_service.dto.feedback.FeedbackRequestDTO;
 import com.mockmate.auth_service.dto.interview.*;
 import com.mockmate.auth_service.service.interview.InterviewService;
+import com.mockmate.auth_service.service.interview_feedback.InterviewFeedbackService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,11 @@ public class InterviewController {
 
     @Autowired
     private InterviewService interviewService;
+
+
+    @Autowired
+    private InterviewFeedbackService interviewFeedbackService;
+
 
     // POST: Create an interview
     @PostMapping("/scheduleInterview")
@@ -77,6 +84,9 @@ public class InterviewController {
     }
 
 
-
-
+    @PostMapping("/feedback")
+    public ResponseEntity<ResponseDto<String>> submitFeedback(@RequestBody FeedbackRequestDTO feedbackRequest) {
+            interviewFeedbackService.handleFeedback(feedbackRequest);
+            return ResponseEntity.ok(new ResponseDto<>("Success" , HttpStatus.OK));
+    }
 }

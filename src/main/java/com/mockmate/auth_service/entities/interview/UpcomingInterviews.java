@@ -1,10 +1,19 @@
 package com.mockmate.auth_service.entities.interview;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
+
 @Entity
 @Table(
         name = "upcoming_interviews",
         uniqueConstraints = @UniqueConstraint(columnNames = {"slot_id", "user_id"})
 )
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpcomingInterviews {
 
     @Id
@@ -35,60 +44,15 @@ public class UpcomingInterviews {
     @Column(name = "question_id", nullable = true)
     private Long questionId;
 
-    // Getters and Setters
-    public Long getUpcomingInterviewId() {
-        return upcomingInterviewId;
-    }
+    @Column(name = "is_interviewer_role", nullable = true)
+    private boolean isInterviewerRole;
 
-    public void setUpcomingInterviewId(Long upcomingInterviewId) {
-        this.upcomingInterviewId = upcomingInterviewId;
-    }
 
-    public Long getSlotId() {
-        return slotId;
-    }
+    @Column(name = "room_id_hash", nullable = true)
+    private String roomIDHash;
 
-    public void setSlotId(Long slotId) {
-        this.slotId = slotId;
-    }
 
-    public Long getUserId() {
-        return userId;
-    }
+    @OneToOne(mappedBy = "upcomingInterview", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UpcomingInterviewUserPreference upcomingInterviewUserPreference;
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public InterviewStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(InterviewStatus status) {
-        this.status = status;
-    }
-
-    public UpcomingInterviews getPeerInterview() {
-        return peerInterview;
-    }
-
-    public void setPeerInterview(UpcomingInterviews peerInterview) {
-        this.peerInterview = peerInterview;
-    }
-
-    public Long getQuestionIDForPeer() {
-        return questionIDForPeer;
-    }
-
-    public void setQuestionIDForPeer(Long questionIDForPeer) {
-        this.questionIDForPeer = questionIDForPeer;
-    }
-
-    public Long getQuestionId() {
-        return questionId;
-    }
-
-    public void setQuestionId(Long questionId) {
-        this.questionId = questionId;
-    }
 }

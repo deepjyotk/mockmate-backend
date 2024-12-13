@@ -39,18 +39,11 @@ public class PairUsersServiceImpl implements PairUsersService {
     private QuestionService questionService ;
 
 
-    @Transactional
-    public void pairUsersForUpcomingInterviews() {
+    private  Map<Long, InterviewSlot> getNearestSlotsForSchduler( List<InterviewSlot> upcomingSlots ){
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime targetTime = now.plusDays(5);
 
-        // Find all the slots.
-        List<InterviewSlot> upcomingSlots = interviewSlotRepository.findAll();
-
-        // Step 2: Find the first nearest slot per interview type
         Map<Long, InterviewSlot> nearestSlots = new HashMap<>();
-
-
         for (InterviewSlot slot : upcomingSlots) {
             InterviewTypeTime typeTime = interviewTypeTimeRepository.findById(slot.getInterviewTypeTime().getId())
                     .orElseThrow(() -> new RuntimeException("InterviewTypeTime not found"));
@@ -62,9 +55,28 @@ public class PairUsersServiceImpl implements PairUsersService {
                 nearestSlots.putIfAbsent(typeTime.getInterviewType().getId(), slot);
             }
         }
+        return nearestSlots ;
+    }
+
+    @Transactional
+    public void pairUsersForUpcomingInterviews() {
+
+
+        //TODO: Ucomment this line
+        List<InterviewSlot> upcomingSlots = interviewSlotRepository.findAll();
+
+        //TODO: Comment this line
+//        InterviewSlot slotIdTemp = interviewSlotRepository.findBySlotId(40017L).orElseThrow(()-> new ResourceNotFoundException("not found")) ;
+//        List<InterviewSlot> upcomingSlots  = new ArrayList<>(Arrays.asList(slotIdTemp));
+
+        // Step 2: Find the first nearest slot per interview type
+        Map<Long, InterviewSlot> nearestSlots = getNearestSlotsForSchduler(upcomingSlots);
+
+
+        // TODO:
 
         // Step 3: Iterate over each nearest slot and pair users
-        for (InterviewSlot slot : nearestSlots.values()) {
+        for (InterviewSlot slot :upcomingSlots) {
             List<UpcomingInterviews> interviews = upcomingInterviewRepository.findBySlotId(slot.getSlotId());
 
             if (interviews.isEmpty()) continue;

@@ -31,6 +31,8 @@ public class InterviewScheduleServiceImpl implements InterviewScheduleService {
 
         // Generate dates for this and next weekends
         LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+
         LocalDate thisSaturday = getNextDayOfWeek(today, DayOfWeek.SATURDAY);
         LocalDate thisSunday = thisSaturday.plusDays(1);
         LocalDate nextSaturday = thisSaturday.plusDays(7);
@@ -40,10 +42,8 @@ public class InterviewScheduleServiceImpl implements InterviewScheduleService {
 
         // Create slots for each interview type time
         for (InterviewTypeTime interviewTypeTime : interviewTypeTimes) {
-            interviewSlots.add(new InterviewSlot(interviewTypeTime, thisSaturday));
-            interviewSlots.add(new InterviewSlot(interviewTypeTime, thisSunday));
-            interviewSlots.add(new InterviewSlot(interviewTypeTime, nextSaturday));
-            interviewSlots.add(new InterviewSlot(interviewTypeTime, nextSunday));
+            interviewSlots.add(new InterviewSlot(interviewTypeTime, today));
+            interviewSlots.add(new InterviewSlot(interviewTypeTime, tomorrow));
         }
 
         // Save all slots to the database

@@ -33,6 +33,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
 
+
+
+
     @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtFilter, CustomUserDetailsService userDetailsService) {
         this.jwtFilter = jwtFilter;
@@ -60,9 +63,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible endpoints
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/users/sample-get").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/error").permitAll()
 
 
                         // Role-based access control

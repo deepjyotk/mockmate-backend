@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {"com.mockmate.auth_service"})
 public class AuthServiceApplication {
 	public static void main(String[] args) {
-
 		SpringApplication.run(AuthServiceApplication.class, args);
 	}
 }
