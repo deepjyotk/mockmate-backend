@@ -1,5 +1,5 @@
 # Stage 1: Build Stage
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copy pom.xml and source code to the container
