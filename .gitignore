@@ -68,3 +68,5 @@ node_modules/
 *.bak
 *.backup
 *.patch
+
+ec2KeyVal.pem
