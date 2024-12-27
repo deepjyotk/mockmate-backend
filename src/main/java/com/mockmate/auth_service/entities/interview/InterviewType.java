@@ -1,9 +1,16 @@
 package com.mockmate.auth_service.entities.interview;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Set;
 
 @Entity
 @Table(name = "interview_types")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class InterviewType {
 
     @Id
@@ -20,56 +27,4 @@ public class InterviewType {
 
     @OneToMany(mappedBy = "interviewType", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<InterviewTypeTime> times;
-
-    // Constructors
-    public InterviewType() {
-    }
-
-    public InterviewType(Long id, String type, String description, Integer durationMinutes) {
-        this.id = id;
-        this.type = type;
-        this.description = description;
-        this.durationMinutes = durationMinutes;
-    }
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public void setDurationMinutes(Integer durationMinutes) {
-        this.durationMinutes = durationMinutes;
-    }
-
-    public Set<InterviewTypeTime> getTimes() {
-        return times;
-    }
-
-    public void setTimes(Set<InterviewTypeTime> times) {
-        this.times = times;
-    }
 }

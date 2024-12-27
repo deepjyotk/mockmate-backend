@@ -21,16 +21,19 @@ import com.mockmate.auth_service.repository.question.QuestionRepository;
 import com.mockmate.auth_service.repository.user.RoleRepository;
 import com.mockmate.auth_service.repository.user.UserRepository;
 import com.mockmate.auth_service.security.jwt.JwtTokenUtil;
+import com.mockmate.auth_service.service.interview_feedback.InterviewFeedbackService;
+import com.mockmate.auth_service.utils.mapper.InterviewTypeMapper;
 import com.mockmate.auth_service.utils.mapper.UserMapper;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,6 +58,7 @@ public class UserService implements IUserService {
     private final QuestionRepository questionRepository ;
     private final UpcomingInterviewRepository upcomingInterviewRepository ;
     private final PastInterviewRepository pastInterviewRepository ;
+    private final InterviewFeedbackService interviewFeedbackService ;
 
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
@@ -64,7 +68,8 @@ public class UserService implements IUserService {
                        InterviewSlotRepository interviewSlotRepository,
                        QuestionRepository questionRepository  ,
                        UpcomingInterviewRepository upcomingInterviewRepository ,
-                       PastInterviewRepository pastInterviewRepository
+                       PastInterviewRepository pastInterviewRepository,
+                       InterviewFeedbackService interviewFeedbackService
                        ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -76,6 +81,7 @@ public class UserService implements IUserService {
         this.questionRepository = questionRepository  ;
         this.upcomingInterviewRepository = upcomingInterviewRepository ;
         this.pastInterviewRepository = pastInterviewRepository ;
+        this.interviewFeedbackService = interviewFeedbackService ;
     }
 
 
@@ -151,6 +157,7 @@ public class UserService implements IUserService {
     }
 
 
+    @Transactional(readOnly = true)
     public InitResponseDto getInitData() {
         InitResponseDto initResponseDTO = new InitResponseDto();
 
@@ -236,34 +243,83 @@ public class UserService implements IUserService {
     }
 
 
+    /**
+     * Cleans up upcoming interviews for the given user ID. If the difference between the current time
+     * and the upcoming interview time is more than 2 hours, the interview is moved from
+     * the UpcomingInterviews table to the PastInterviews table.
+     *
+     * @param userId the ID of the user for whom the cleanup is to be performed
+     */
+    @Transactional
+    public void cleanUpcomingInterviews(Long userId) {
+        // Get current time in UTC
+        OffsetDateTime currentTime = OffsetDateTime.now();
+
+        // Fetch all upcoming interviews for the given user ID
+        List<UpcomingInterviews> upcomingInterviews = upcomingInterviewRepository.findByUserId(userId);
+
+        // Filter the interviews where currentTime - interviewTime > 2 hours
+        List<UpcomingInterviews> interviewsToMove = upcomingInterviews.stream()
+                .filter(interview -> {
+                    // Get interview slot time (assuming this is the "time" of the interview)
+                    InterviewSlot interviewSlot = interviewSlotRepository.findBySlotId(interview.getSlotId())
+                            .orElseThrow(() -> new RuntimeException("Interview slot not found for slotId: " + interview.getSlotId()));
+
+                    OffsetDateTime interviewTime = OffsetDateTime.of(
+                            interviewSlot.getInterviewDate(),
+                            OffsetTime.parse(interviewSlot.getInterviewTypeTime().getTime()).toLocalTime(),
+                            ZoneOffset.UTC
+                    );
+
+                    // Calculate the difference in hours
+                    long hoursDifference = ChronoUnit.HOURS.between(interviewTime, currentTime);
+                    return hoursDifference > 2;
+                })
+                .toList();
+
+        // Move each interview from UpcomingInterviews to PastInterviews
+
+        for(var upcomingInterview: interviewsToMove){
+            interviewFeedbackService.createPastFromUpcomingForPairs(upcomingInterview.getUpcomingInterviewId());
+        }
+    }
+
+
+
     @Override
+    @Transactional(readOnly = true)
     public UserSpecificResponseDto getUserSpecificData(Long userId, int currentPage, int limit) {
         // Set default values if not provided
         if (currentPage < 1) currentPage = 1;
         if (limit < 1) limit = 1;
 
-        // Fetch Upcoming Interviews
+
+        //Fetch the userDetails from userID.
+        UserEntity userEntity = userRepository.getReferenceById(userId);
+
+
         List<UpcomingInterviews> upcomingInterviews = upcomingInterviewRepository.findByUserId(userId);
         List<UserSpecificUpcomingInterviewDto> upcomingInterviewDtos = upcomingInterviews.stream().map(this::mapUpcomingInterview).collect(Collectors.toList());
 
         // Fetch Past Interviews with Pagination
         PageRequest pageRequest = PageRequest.of(currentPage - 1, limit);
         Page<PastInterviews> pastInterviewsPage = pastInterviewRepository.findByUserIdOrderByDateAndTimeDesc(userId, pageRequest);
-        List<PastInterviewDto> pastInterviewDtos = pastInterviewsPage.getContent().stream().map(this::mapPastInterview).collect(Collectors.toList());
+        List<PastInterviewDTO> pastInterviewDTOS = pastInterviewsPage.getContent().stream().map(this::mapPastInterview).collect(Collectors.toList());
 
         PastInterviewsPageDto pastInterviewsPageDto = new PastInterviewsPageDto();
         pastInterviewsPageDto.setPage(currentPage);
         pastInterviewsPageDto.setLimit(limit);
         pastInterviewsPageDto.setTotalListings(pastInterviewsPage.getTotalElements());
         pastInterviewsPageDto.setTotalPages(pastInterviewsPage.getTotalPages());
-        pastInterviewsPageDto.setResults(pastInterviewDtos);
+        pastInterviewsPageDto.setResults(pastInterviewDTOS);
 
         // Construct UserSpecificResponseDto
-        UserSpecificResponseDto responseDto = new UserSpecificResponseDto();
-        responseDto.setUpcomingInterviews(upcomingInterviewDtos);
-        responseDto.setPastInterviews(pastInterviewsPageDto);
 
-        return responseDto;
+        return new UserSpecificResponseDto(
+                new UserSpecificResponseDto.UserInfo(userEntity.getUsername(),""),
+                upcomingInterviewDtos,
+                pastInterviewsPageDto
+        );
     }
 
     private OffsetDateTime getDateAndTime(InterviewSlot interviewSlot, InterviewTypeTime interviewTypeTime){
@@ -286,14 +342,11 @@ public class UserService implements IUserService {
                          new ResourceNotFoundException("Slot Id: "+interview.getSlotId()+" not found"));
 
         var interviewTypeTime = interviewSlot.getInterviewTypeTime() ;
-        InterviewType interviewType = interviewTypeTime.getInterviewType() ;
 
-        dto.setInterviewType(new UserSpecificInterviewTypeDto(
-                interviewType.getId(),interviewType.getType(), interviewType.getDescription(), interviewType.getDurationMinutes()
-        ));
+        dto.setInterviewType(InterviewTypeMapper.toDTO(interviewTypeTime.getInterviewType()));
         dto.setInterviewDateAndTime(getDateAndTime(interviewSlot,interviewTypeTime));
 
-        if (interview.getPeerInterview() != null) {
+        if (interview.getPeerInterview() != null && interview.getQuestionIDForPeer()!= null ) {
             questionRepository.findById(interview.getQuestionIDForPeer()).ifPresent(question -> dto.setUpcomingInterviewQuestionForPeer(new UserSpecificUpcomingInterviewQuestionDto(
                     question.getQuestionId(),
                     question.getQuestionTitle(),
@@ -303,36 +356,55 @@ public class UserService implements IUserService {
         return dto;
     }
 
-    private PastInterviewDto mapPastInterview(PastInterviews interview) {
-        PastInterviewDto dto = new PastInterviewDto();
+    private PastInterviewDTO mapPastInterview(PastInterviews interview) {
+        PastInterviewDTO dto = new PastInterviewDTO();
+        PastInterviews peerPast = interview.getPeerInterview() ;
         dto.setPastInterviewID(interview.getPastInterviewId());
         dto.setPastInterviewDateAndTime(interview.getDateAndTime());
         dto.setPastInterviewType(interview.getInterviewType().getType());
+
+        var feedback = interview.getInterviewFeedback() ;
+        var feedbackToPeer = peerPast.getInterviewFeedback() ;
+
+        dto.setFeedbackGiven(feedbackToPeer!=null);
 
         // Fetch QuestionForMe
         if (interview.getQuestionId() != null) {
             Question question = questionRepository.findById(interview.getQuestionId()).orElse(null);
             if (question != null) {
-                QuestionForMeDto questionDto = new QuestionForMeDto();
-                questionDto.setQuestionId(question.getQuestionId());
-                questionDto.setQuestionText(question.getQuestionTextS3Url()); // Assuming text is stored here
+                QuestionForMeDto questionDto = new QuestionForMeDto(question.getQuestionId(), question.getQuestionTitle());
                 dto.setQuestionForMe(questionDto);
             }
         }
 
-        // Fetch PeerUser
-        if (interview.getPeerInterview() != null) {
-            Long peerUserId = interview.getPeerInterview().getUserId();
-            // Assuming UserRepository has a method to find user by ID
-            UserEntity peerUser = userRepository.findById(peerUserId).orElse(null);
-            if (peerUser != null) {
-                PeerUserDto peerUserDto = new PeerUserDto(
-                        peerUser.getId(),
-                        peerUser.getUsername()
-                );
-                dto.setPeerUser(peerUserDto);
-            }
+
+        if(feedback!=null){
+            dto.setFeedbackByPeer(new FeedbackByPeerDTO(
+                    feedback.getCommunicationSkillsRating(),
+                    feedback.getTechnicalSkillsRating(),
+                    feedback.getDidWellText(),
+                    feedback.getThingsToImproveText(),
+                    feedback.getNextRoundSelection(),
+                    feedback.getGoodMatchForPeerRating()
+            ));
+        }else{
+            dto.setFeedbackByPeer(null);
         }
+
+        dto.setRoomIDHash(interview.getRoomIDHash());
+
+
+        Long peerUserId = interview.getPeerInterview().getUserId();
+        // Assuming UserRepository has a method to find user by ID
+        UserEntity peerUser = userRepository.findById(peerUserId).orElse(null);
+        if (peerUser != null) {
+            PeerUserDto peerUserDto = new PeerUserDto(
+                    peerUser.getId(),
+                    peerUser.getUsername()
+            );
+            dto.setPeerUser(peerUserDto);
+        }
+
         return dto;
     }
 

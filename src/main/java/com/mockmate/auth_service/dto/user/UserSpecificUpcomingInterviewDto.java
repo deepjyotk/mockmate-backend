@@ -1,44 +1,19 @@
 package com.mockmate.auth_service.dto.user;
 
+import com.mockmate.auth_service.dto.interview.InterviewTypeDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.OffsetDateTime;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class UserSpecificUpcomingInterviewDto {
     private Long interviewId;
-    private UserSpecificInterviewTypeDto interviewType;
+    private InterviewTypeDTO interviewType;
     private OffsetDateTime interviewDateAndTime;
     private UserSpecificUpcomingInterviewQuestionDto upcomingInterviewQuestionForPeer;
 
-    // Getters and Setters
-
-    public Long getInterviewId() {
-        return interviewId;
-    }
-
-    public void setInterviewId(Long interviewId) {
-        this.interviewId = interviewId;
-    }
-
-    public UserSpecificInterviewTypeDto getInterviewType() {
-        return interviewType;
-    }
-
-    public void setInterviewType(UserSpecificInterviewTypeDto interviewType) {
-        this.interviewType = interviewType;
-    }
-
-    public OffsetDateTime getInterviewDateAndTime() {
-        return interviewDateAndTime;
-    }
-
-    public void setInterviewDateAndTime(OffsetDateTime interviewDateAndTime) {
-        this.interviewDateAndTime = interviewDateAndTime;
-    }
-
-    public UserSpecificUpcomingInterviewQuestionDto getUpcomingInterviewQuestionForPeer() {
-        return upcomingInterviewQuestionForPeer;
-    }
-
-    public void setUpcomingInterviewQuestionForPeer(UserSpecificUpcomingInterviewQuestionDto upcomingInterviewQuestionForPeer) {
-        this.upcomingInterviewQuestionForPeer = upcomingInterviewQuestionForPeer;
-    }
 }

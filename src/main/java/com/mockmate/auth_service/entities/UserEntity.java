@@ -79,6 +79,7 @@ public class UserEntity {
     private String timezone = "UTC";
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Column(name = "roles", nullable = false)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

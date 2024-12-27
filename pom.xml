@@ -73,6 +73,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>11.1.0</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
@@ -106,6 +114,7 @@
 			<version>${lombok.version}</version> <!-- Use the version defined in properties -->
 			<optional>true</optional>
 		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.security</groupId>

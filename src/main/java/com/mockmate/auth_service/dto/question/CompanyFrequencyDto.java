@@ -15,6 +15,9 @@ public class CompanyFrequencyDto {
     @JsonProperty("companyID")
     private Long companyId;
 
+    @JsonProperty("companyName")
+    private String companyName;
+
     @JsonProperty("frequencyAsked")
     private Integer frequencyAsked;
 

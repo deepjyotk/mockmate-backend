@@ -1,6 +1,8 @@
 package com.mockmate.auth_service.controller;
 
 import com.mockmate.auth_service.dto.ResponseDto;
+import com.mockmate.auth_service.dto.room.ChangeInterviewRoleResponseDTO;
+import com.mockmate.auth_service.dto.room.ChangeRoleRequestDTO;
 import com.mockmate.auth_service.dto.room.GetRoomPayloadDTO;
 import com.mockmate.auth_service.dto.room.RoomResponseDto;
 import com.mockmate.auth_service.service.room.RoomService;
@@ -47,5 +49,29 @@ public class RoomController {
 
         var res2 = new ResponseDto<GetRoomPayloadDTO>(payload, HttpStatus.OK);
         return ResponseEntity.ok(res2);
+    }
+
+
+
+    // New endpoint for changing interview role
+    @Operation(
+            summary = "Change Interview Role",
+            description = "Changes the role of an interview within a room",
+            tags = {"Room"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Role changed successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request parameters"),
+            @ApiResponse(responseCode = "404", description = "Room or Interview not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping("/changeRole")
+    public ResponseEntity<ResponseDto<ChangeInterviewRoleResponseDTO>> changeRole(
+            @RequestBody ChangeRoleRequestDTO changeRoleRequestDTO) {
+        // Call the service to change the interview role
+        var response = roomService.changeRole(changeRoleRequestDTO.getRoomHash(), changeRoleRequestDTO.getInterviewID());
+        ResponseDto<ChangeInterviewRoleResponseDTO> resDto = new ResponseDto<ChangeInterviewRoleResponseDTO>(response, HttpStatus.OK);
+
+        return ResponseEntity.ok(resDto);
     }
 }

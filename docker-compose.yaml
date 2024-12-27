@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres
     env_file:
-      - ./.env
+      - ./.env.docker
     volumes:
       - "./postgres_data:/var/lib/postgresql/data"
       - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
@@ -17,7 +17,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     env_file:
-      - ./.env
+      - ./.env.docker
     ports:
       - "5050:80"
     depends_on:
@@ -28,7 +28,17 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./.env
+      - ./.env.docker
     depends_on:
       postgres:
         condition: service_healthy
+
+  room-ws-service:
+    image: deepjyot/room-ws-service:latest
+    ports:
+      - "9090:9090"
+    env_file:
+      - ./.env.docker
+#    depends_on:
+#      postgres:
+#        condition: service_healthy

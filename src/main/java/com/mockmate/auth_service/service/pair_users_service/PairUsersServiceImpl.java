@@ -10,6 +10,8 @@ import com.mockmate.auth_service.repository.interview.UpcomingInterviewRepositor
 import com.mockmate.auth_service.repository.interview.UpcomingInterviewUserPreferenceRepository;
 import com.mockmate.auth_service.service.question.QuestionService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,9 @@ public class PairUsersServiceImpl implements PairUsersService {
 
     @Autowired
     private UpcomingInterviewUserPreferenceRepository userPreferenceRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(PairUsersServiceImpl.class);
+
 
 
     @Autowired
@@ -79,6 +84,11 @@ public class PairUsersServiceImpl implements PairUsersService {
         for (InterviewSlot slot :upcomingSlots) {
             List<UpcomingInterviews> interviews = upcomingInterviewRepository.findBySlotId(slot.getSlotId());
 
+
+            if(interviews.size()>2){
+                logger.info("interviews+ "+ interviews.get(0).getUserId() + " | " +interviews.get(1).getUserId() );
+            }
+
             if (interviews.isEmpty()) continue;
 
 
@@ -103,11 +113,14 @@ public class PairUsersServiceImpl implements PairUsersService {
                 Long peerUserId = peerUpcoming.getUserId() ;
 
 
+
                 Long questionID = questionService.getRandomQuestionNotOccuredInPast(interviewId,
-                        slot.getInterviewTypeTime().getInterviewType().getId());
+                        slot.getInterviewTypeTime().getInterviewType().getId()
+                );
 
                 Long peerQuestionID = questionService.getRandomQuestionNotOccuredInPast(peerInterviewId,
                         slot.getInterviewTypeTime().getInterviewType().getId());
+
                 upcoming.setQuestionId(questionID);
                 upcoming.setPeerInterview(peerUpcoming);
                 upcoming.setQuestionIDForPeer(peerQuestionID);

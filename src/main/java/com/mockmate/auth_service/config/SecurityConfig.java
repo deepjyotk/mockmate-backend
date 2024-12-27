@@ -64,6 +64,7 @@ public class SecurityConfig {
                         // Publicly accessible endpoints
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/users/sample-get").permitAll()
+                        .requestMatchers("/api/room/changeRole").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
@@ -124,7 +125,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 //        configuration.setAllowedOrigins(Collections.singletonList("*"));
-        configuration.setAllowedOrigins(List.of("http://localhost:8080" , "http://localhost:3000")); // Replace with production domains
+//        configuration.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:9090","http://room-ws-service:9090", "http://localhost:3000", "http://room-ws-service-1:9090")); // Replace with production domains
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("*")); // Allow all methods
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         configuration.setExposedHeaders(List.of("Authorization")); // Expose token header

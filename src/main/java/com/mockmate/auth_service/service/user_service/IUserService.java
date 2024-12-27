@@ -12,5 +12,5 @@ public interface IUserService {
     LoginResponseDto login(LoginRequestDto request);
     InitResponseDto getInitData()  ;
     UserSpecificResponseDto getUserSpecificData(Long userId, int currentPage, int limit);
-
+    void cleanUpcomingInterviews(Long userId) ;
 }

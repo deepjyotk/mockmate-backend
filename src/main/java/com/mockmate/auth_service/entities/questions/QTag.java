@@ -2,9 +2,15 @@ package com.mockmate.auth_service.entities.questions;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "qtags_table")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class QTag {
 
     @Id
@@ -14,28 +20,4 @@ public class QTag {
     @Column(length = 500)
     @NotNull
     private String questionTagText;
-
-    public QTag(Long tagId, String questionTagText) {
-        this.tagId = tagId;
-        this.questionTagText = questionTagText;
-    }
-
-    public QTag() {
-    }
-
-    public Long getTagId() {
-        return this.tagId;
-    }
-
-    public String getQuestionTagText() {
-        return this.questionTagText;
-    }
-
-    public void setTagId(Long tagId) {
-        this.tagId = tagId;
-    }
-
-    public void setQuestionTagText(String questionTagText) {
-        this.questionTagText = questionTagText;
-    }
 }

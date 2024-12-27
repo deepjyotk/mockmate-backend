@@ -1,6 +1,5 @@
 package com.mockmate.auth_service.entities.interview;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -49,8 +48,4 @@ public class InterviewFeedback {
     @Max(5)
     @Column(name = "good_match_for_peer_rating", nullable = false)
     private Integer goodMatchForPeerRating;
-
-    // Getters and Setters ...
-    // Constructors ...
 }
-

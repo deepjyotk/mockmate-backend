@@ -1,27 +1,23 @@
 package com.mockmate.auth_service.dto.user;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.util.List;
 
+@Data
+@AllArgsConstructor
 public class UserSpecificResponseDto {
+
+    private UserInfo userInfo ;
     private List<UserSpecificUpcomingInterviewDto> upcomingInterviews;
     private PastInterviewsPageDto pastInterviews;
 
-    // Getters and Setters
-
-    public List<UserSpecificUpcomingInterviewDto> getUpcomingInterviews() {
-        return upcomingInterviews;
-    }
-
-    public void setUpcomingInterviews(List<UserSpecificUpcomingInterviewDto> upcomingInterviews) {
-        this.upcomingInterviews = upcomingInterviews;
-    }
-
-    public PastInterviewsPageDto getPastInterviews() {
-        return pastInterviews;
-    }
-
-    public void setPastInterviews(PastInterviewsPageDto pastInterviews) {
-        this.pastInterviews = pastInterviews;
+    @Data
+    @AllArgsConstructor
+    public static class UserInfo{
+        String username;
+        String userProfileUrl ;
     }
 }

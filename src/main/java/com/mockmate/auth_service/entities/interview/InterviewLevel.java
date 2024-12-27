@@ -2,10 +2,16 @@ package com.mockmate.auth_service.entities.interview;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Entity
 @Table(name = "interview_levels")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class InterviewLevel {
 
     @Id
@@ -17,40 +23,4 @@ public class InterviewLevel {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    // Constructors
-    public InterviewLevel() {
-    }
-
-    public InterviewLevel(Long id, String level, String description) {
-        this.id = id;
-        this.level = level;
-        this.description = description;
-    }
-
-    // Getters and Setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

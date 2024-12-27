@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PastInterviewRepository extends JpaRepository<PastInterviews, Long> {
@@ -24,5 +25,7 @@ public interface PastInterviewRepository extends JpaRepository<PastInterviews, L
 
 
     Page<PastInterviews> findByUserIdOrderByDateAndTimeDesc(Long userId, Pageable pageable);
+    Optional<PastInterviews> findByUserIdAndRoomIDHash(Long userId, String roomIDHash);
+
 
 }

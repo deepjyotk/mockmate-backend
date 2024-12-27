@@ -70,3 +70,5 @@ node_modules/
 *.patch
 
 ec2KeyVal.pem
+.env
+.env.docker

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.OffsetDateTime;
@@ -33,6 +34,7 @@ public class PastInterviews {
     // Self-referential relationship for peerInterviewId
     @OneToOne
     @JoinColumn(name = "peer_interview_id", nullable = true)
+    @ToString.Exclude // ✅ Exclude this field to prevent recursive loop
     private PastInterviews peerInterview;
 
     // Field for questionIDFor_peer
@@ -43,13 +45,20 @@ public class PastInterviews {
     @Column(name = "question_id", nullable = true)
     private Long questionId;
 
-
     @Column(name = "date_and_time", nullable = false)
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private OffsetDateTime dateAndTime;
 
-
     @ManyToOne
     @JoinColumn(name = "interview_type_id", nullable = false)
+    @ToString.Exclude // ✅ Exclude this field to prevent recursive loop
     private InterviewType interviewType;
+
+    @Column(name = "room_id_hash", nullable = true)
+    private String roomIDHash;
+
+    // 🔥 One-to-One bidirectional relationship with InterviewFeedback
+    @OneToOne(mappedBy = "pastInterview", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    @ToString.Exclude // ✅ Exclude this field to prevent recursive loop
+    private InterviewFeedback interviewFeedback;
 }

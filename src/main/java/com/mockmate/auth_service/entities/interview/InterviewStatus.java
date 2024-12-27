@@ -1,8 +1,12 @@
 package com.mockmate.auth_service.entities.interview;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "interview_status")
+@AllArgsConstructor
+@NoArgsConstructor
 public class InterviewStatus {
 
     @Id

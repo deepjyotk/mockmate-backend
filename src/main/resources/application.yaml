@@ -15,6 +15,13 @@ spring:
     generate-ddl: true
     show-sql: true
 
+  flyway:
+    enabled: false
+    schemas: public
+    locations: "classpath:db/migration"
+    baseline-on-migrate: true
+    clean-on-validation-error: true
+
 zego:
   app-id: "${ZEGO_APP_ID}"
   server-secret: "${ZEGO_SERVER_SECRET}"

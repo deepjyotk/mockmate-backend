@@ -38,8 +38,10 @@ public class UserController {
     public ResponseEntity<ResponseDto<UserSpecificResponseDto>> getUserSpecificData(    @RequestParam(defaultValue = "1") int currentPage,
                                                                                         @RequestParam(defaultValue = "10") int limit){
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName(); // userId from token
+        String userId = authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
+
+        userService.cleanUpcomingInterviews(Long.parseLong(userId));
         return ResponseEntity.ok( new ResponseDto<>(userService.getUserSpecificData(Long.parseLong(userId),currentPage, limit), HttpStatus.OK)) ;
     }
 }

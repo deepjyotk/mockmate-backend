@@ -1,8 +1,12 @@
 package com.mockmate.auth_service.service.question;
+
 import com.mockmate.auth_service.dto.question.CompanyFrequencyDto;
 import com.mockmate.auth_service.dto.question.QuestionPopulateRequestDto;
 import com.mockmate.auth_service.dto.question.QuestionResponseDto;
-import com.mockmate.auth_service.entities.interview.*;
+import com.mockmate.auth_service.entities.interview.InterviewLevel;
+import com.mockmate.auth_service.entities.interview.InterviewType;
+import com.mockmate.auth_service.entities.interview.UpcomingInterviewUserPreference;
+import com.mockmate.auth_service.entities.interview.UpcomingInterviews;
 import com.mockmate.auth_service.entities.questions.*;
 import com.mockmate.auth_service.exception.custom.ResourceNotFoundException;
 import com.mockmate.auth_service.repository.interview.*;
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -168,6 +173,7 @@ public class QuestionServiceImpl implements QuestionService {
                 question.getCompanyAssociations().stream()
                         .map(association -> new CompanyFrequencyDto(
                                 association.getCompany().getCompanyId(),
+                                association.getCompany().getCompanyName(),
                                 association.getFrequencyAsked(),
                                 association.getLastAskedDate()))
                         .collect(Collectors.toList()));
@@ -225,7 +231,10 @@ public class QuestionServiceImpl implements QuestionService {
                 }
             }
         }
-        return questionRepository.findRandomQuestion().getQuestionId() ;
+        var randomQuestion =   questionRepository.findRandomQuestion() ;
+
+        return randomQuestion.map(Question::getQuestionId).orElse(null);
+
     }
 
     private String extractObjectKeyFromUrl(String s3Url) {
@@ -233,10 +242,13 @@ public class QuestionServiceImpl implements QuestionService {
         // Example: https://bucket-name.s3.amazonaws.com/interviewTypeId/question-title.md
         try {
             URL url = new URL(s3Url);
-            String path = url.getPath(); // e.g., /interviewTypeId/question-title.md
+
+            String path = url.getPath();
+
             if (path.startsWith("/")) {
                 path = path.substring(1); // Remove leading '/'
             }
+
             return path;
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid S3 URL.", e);
@@ -253,10 +265,10 @@ public class QuestionServiceImpl implements QuestionService {
         Set<CompanyFrequencyDto> companyFrequencyDTOs = savedQuestion.getCompanyAssociations().stream()
                 .map(qc -> new CompanyFrequencyDto(
                         qc.getCompany().getCompanyId(),
+                        qc.getCompany().getCompanyName(),
                         qc.getFrequencyAsked(),
                         qc.getLastAskedDate()))
                 .collect(Collectors.toSet());
-
 
 
         // Build Response DTO

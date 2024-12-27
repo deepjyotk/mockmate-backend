@@ -1,5 +1,7 @@
 package com.mockmate.auth_service.dto.room;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mockmate.auth_service.dto.interview.InterviewTypeDTO;
 import com.mockmate.auth_service.dto.question.QuestionResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,11 +18,22 @@ public class GetRoomPayloadDTO {
     private PeerInfo peerInfo;
 
     @Data
+    @AllArgsConstructor
     public static class RoomDetails {
-        private String roomIDHash;
-        private Long interviewID;
-        private OffsetTime interviewStartTime ;
-        private OffsetTime interviewEndTime ;
+        @JsonProperty("roomIDHash")
+        private final String roomIDHash;
+
+        @JsonProperty("interviewID")
+        private final Long interviewID;
+
+        @JsonProperty("interviewStartTime")
+        private final OffsetTime interviewStartTime ;
+
+        @JsonProperty("interviewEndTime")
+        private final OffsetTime interviewEndTime ;
+
+        @JsonProperty("interviewType")
+        private final InterviewTypeDTO interviewTypeDto ;
     }
 
     @Data

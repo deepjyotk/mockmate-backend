@@ -2,12 +2,12 @@ package com.mockmate.auth_service.service.room;
 
 import com.mockmate.auth_service.controller.ZegoController;
 import com.mockmate.auth_service.dto.question.QuestionResponseDto;
+import com.mockmate.auth_service.dto.room.ChangeInterviewRoleResponseDTO;
 import com.mockmate.auth_service.dto.room.GetRoomPayloadDTO;
 import com.mockmate.auth_service.dto.room.RoomResponseDto;
 import com.mockmate.auth_service.entities.UserEntity;
 import com.mockmate.auth_service.entities.interview.InterviewSlot;
 import com.mockmate.auth_service.entities.interview.UpcomingInterviews;
-import com.mockmate.auth_service.entities.questions.Question;
 import com.mockmate.auth_service.enums.InterviewStatusEnum;
 import com.mockmate.auth_service.exception.custom.*;
 import com.mockmate.auth_service.repository.interview.InterviewSlotRepository;
@@ -19,6 +19,8 @@ import com.mockmate.auth_service.repository.user.UserRepository;
 import com.mockmate.auth_service.service.question.QuestionService;
 import com.mockmate.auth_service.service.scheduler.SchedulerService;
 import com.mockmate.auth_service.service.zego.ZegoService;
+import com.mockmate.auth_service.utils.mapper.InterviewTypeMapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,6 +208,10 @@ public class RoomServiceImpl  implements RoomService{
         // Fetch the upcomingInterview
         UpcomingInterviews upcomingInterview = upcomingInterviewRepository.findById(interviewID)
                 .orElseThrow(() -> new ResourceNotFoundException("Upcoming interview not found with ID: " + interviewID));
+        InterviewSlot interviewSlot = interviewSlotRepository.findBySlotId(upcomingInterview.getSlotId()).orElseThrow(
+                ()->new ResourceNotFoundException("Slot ID: "+ upcomingInterview.getSlotId()+" does not exist")
+        );
+
 
         // Verify that the roomHash matches the stored roomIDHash
         if (!roomHash.equals(upcomingInterview.getRoomIDHash())) {
@@ -239,27 +245,33 @@ public class RoomServiceImpl  implements RoomService{
         String peerRole = peerInterview.isInterviewerRole() ? "Interviewer" : "Interviewee";
 
         // Fetch question details
-        Long questionID = upcomingInterview.isInterviewerRole() ? upcomingInterview.getQuestionId() : upcomingInterview.getQuestionIDForPeer();
+        Optional<Long> questionID = Optional.ofNullable(
+                upcomingInterview.isInterviewerRole() ?
+                        upcomingInterview.getPeerInterview().getQuestionId() :
+                        null
+        );
 
-        Question question = questionRepository.findById(questionID)
-                .orElseThrow(() -> new ResourceNotFoundException("Question not found with ID: " + questionID));
+        QuestionResponseDto questionResponseDto = null ;
+        if (questionID.isPresent()) {
+            Long id = questionID.get();
+
+            questionResponseDto = this.questionService.getQuestionById(questionID.get());
+
+
+        }
+
 
         // Build GetRoomPayloadDTO
         GetRoomPayloadDTO payload = new GetRoomPayloadDTO();
 
-
         // Set roomDetails
-        GetRoomPayloadDTO.RoomDetails roomDetails = new GetRoomPayloadDTO.RoomDetails();
-        roomDetails.setRoomIDHash(upcomingInterview.getRoomIDHash());
-        roomDetails.setInterviewID(interviewID);
-
-        InterviewSlot interviewSlot = interviewSlotRepository.findBySlotId(upcomingInterview.getSlotId()).orElseThrow(
-                ()->new ResourceNotFoundException("Slot ID: "+ upcomingInterview.getSlotId()+" does not exist")
-        ) ;
-        roomDetails.setInterviewStartTime(getSlotTime(interviewSlot));
-
-        //TODO: Now hard coded 1hr, probably fetch details of how Long interview lasts
-        roomDetails.setInterviewEndTime(getSlotTime(interviewSlot).plusHours(1));
+        GetRoomPayloadDTO.RoomDetails roomDetails = new GetRoomPayloadDTO.RoomDetails(
+                upcomingInterview.getRoomIDHash(),
+                interviewID,
+                getSlotTime(interviewSlot),
+                getSlotTime(interviewSlot).plusHours(1),
+                InterviewTypeMapper.toDTO(interviewSlot.getInterviewTypeTime().getInterviewType())
+        );
 
 
         payload.setRoomDetails(roomDetails);
@@ -281,10 +293,56 @@ public class RoomServiceImpl  implements RoomService{
         GetRoomPayloadDTO.PeerInfo peerInfo = new GetRoomPayloadDTO.PeerInfo();
         peerInfo.setPeerRole(peerRole);
 
-        QuestionResponseDto questionResponseDto = this.questionService.getQuestionById(questionID);
         peerInfo.setQuestion(questionResponseDto);
         payload.setPeerInfo(peerInfo);
 
+
+
         return payload;
+    }
+
+    @Override
+    @Transactional
+    public ChangeInterviewRoleResponseDTO changeRole(String roomHash, Long interviewID) {
+        // 1. Retrieve the interview based on interviewID
+        UpcomingInterviews interview = upcomingInterviewRepository.findById(interviewID)
+                .orElseThrow(() -> new EntityNotFoundException("Interview not found with id: " + interviewID));
+
+        // 2. Verify that the room hash matches
+        if (!roomHash.equals(interview.getRoomIDHash())) {
+            throw new IllegalArgumentException("Room hash does not match for interview ID: " + interviewID);
+        }
+
+        // 3. Toggle the isInterviewerRole for the interview
+        interview.setInterviewerRole(!interview.isInterviewerRole());
+        upcomingInterviewRepository.save(interview);
+
+        // 4. Check if there is a peer interview linked to this interview
+        UpcomingInterviews peerInterview = interview.getPeerInterview();
+        if (peerInterview != null) {
+            // 5. Toggle the isInterviewerRole for the peer interview
+            peerInterview.setInterviewerRole(!peerInterview.isInterviewerRole());
+            upcomingInterviewRepository.save(peerInterview);
+        }
+
+        // 6. Return a response DTO
+        ChangeInterviewRoleResponseDTO.PeerDTO peer1 = ChangeInterviewRoleResponseDTO.PeerDTO.builder()
+                .interviewId(interview.getUpcomingInterviewId())
+                .interviewRole(interview.isInterviewerRole() ? "Interviewer" : "Interviewee")
+                .build();
+
+        ChangeInterviewRoleResponseDTO.PeerDTO peer2 = null;
+        if (peerInterview != null) {
+            peer2 = ChangeInterviewRoleResponseDTO.PeerDTO.builder()
+                    .interviewId(peerInterview.getUpcomingInterviewId())
+                    .interviewRole(peerInterview.isInterviewerRole() ? "Interviewer" : "Interviewee")
+                    .build();
+        }
+        return ChangeInterviewRoleResponseDTO.builder()
+                .roomHash(roomHash)
+                .peer1(peer1)
+                .peer2(peer2)
+                .build();
+
     }
 }

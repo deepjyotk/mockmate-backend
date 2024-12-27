@@ -3,7 +3,6 @@ package com.mockmate.auth_service.service.resource_constant_services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mockmate.auth_service.dto.interview.InterviewLevelDto;
-import com.mockmate.auth_service.dto.interview.InterviewTypeDto;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;

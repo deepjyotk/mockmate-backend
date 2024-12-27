@@ -1,5 +1,6 @@
 package com.mockmate.auth_service.service.room;
 
+import com.mockmate.auth_service.dto.room.ChangeInterviewRoleResponseDTO;
 import com.mockmate.auth_service.dto.room.GetRoomPayloadDTO;
 import com.mockmate.auth_service.dto.room.RoomResponseDto;
 
@@ -8,4 +9,8 @@ public interface RoomService {
 
 
     GetRoomPayloadDTO getRoomPayloadForInterview(Long interviewID,  String roomHash) ;
+
+
+    ChangeInterviewRoleResponseDTO changeRole(String roomHash, Long interviewID);
+
 }
