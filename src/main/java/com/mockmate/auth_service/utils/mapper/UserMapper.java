@@ -28,7 +28,7 @@ public class UserMapper {
     // Convert UserEntity to RegisterResponse
     public static RegisterResponseDto toRegisterResponse(UserEntity user, String token) {
         return new RegisterResponseDto(
-                token,
+
                 "User registered successfully",
                 user.getUsername(),
                 user.getEmail()

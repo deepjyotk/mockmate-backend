@@ -15,6 +15,15 @@ spring:
     generate-ddl: true
     show-sql: true
 
+  mail:
+    host: email-smtp.us-east-1.amazonaws.com
+    port: 587
+    username: "${AWS_ACCESS_KEY_ID}"
+    password: "${AWS_SECRET_ACCESS_KEY}"
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
   flyway:
     enabled: false
     schemas: public
@@ -35,3 +44,10 @@ aws:
 logging:
   level:
     org.springframework.security: DEBUG
+
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

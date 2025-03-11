@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mockmate.auth_service.dto.ResponseDto;
 import com.mockmate.auth_service.dto.question.CompanyFrequencyDto;
+import com.mockmate.auth_service.dto.question.QTagDto;
 import com.mockmate.auth_service.dto.question.QuestionPopulateRequestDto;
 import com.mockmate.auth_service.dto.question.QuestionResponseDto;
-import com.mockmate.auth_service.entities.questions.QTag;
 import com.mockmate.auth_service.service.question.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,14 +44,12 @@ public class QuestionController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        List<QTag> tagsList;
+        List<QTagDto> tagsList;
         List<CompanyFrequencyDto> companiesList;
 
 
-        tagsList = objectMapper.readValue(tags, new TypeReference<List<QTag>>() {});
+        tagsList = objectMapper.readValue(tags, new TypeReference<List<QTagDto>>() {});
         companiesList = objectMapper.readValue(companiesJson, new TypeReference<List<CompanyFrequencyDto>>() {});
-
-
 
         // Process the request using parsed values
         QuestionPopulateRequestDto requestDTO = new QuestionPopulateRequestDto(interviewTypeId, questionDifficultyId, questionTitle, tagsList, companiesList, markdownFile);
@@ -63,7 +61,6 @@ public class QuestionController {
                 HttpStatus.OK,
                 "Question populated successfully"
         );
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

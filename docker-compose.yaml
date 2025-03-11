@@ -2,43 +2,90 @@ version: '3.9'
 
 services:
   postgres:
-    image: postgres
+    image: postgres:latest
+    container_name: postgres
     env_file:
-      - ./.env.docker
+      - ./deployment/.env.docker
     volumes:
       - "./postgres_data:/var/lib/postgresql/data"
-      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "./deployment/db/init.sql:/docker-entrypoint-initdb.d/init.sql"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
     env_file:
-      - ./.env.docker
+      - ./deployment/.env.docker
     ports:
       - "5050:80"
     depends_on:
       - postgres
+    networks:
+      - app-network
 
   auth-service:
     image: deepjyot/auth-service:latest
+    container_name: auth-service
     ports:
       - "8080:8080"
     env_file:
-      - ./.env.docker
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - ./deployment/.env.docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/users/sample-get"]
+      interval: 20s
+      timeout: 20s
+      retries: 7
+      start_period: 60s
+    networks:
+      - app-network
 
   room-ws-service:
     image: deepjyot/room-ws-service:latest
+    container_name: room-ws-service
     ports:
       - "9090:9090"
     env_file:
-      - ./.env.docker
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
+      - ./deployment/.env.docker
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    volumes:
+      - ./deployment/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./deployment/ssl:/etc/nginx/ssl:ro
+    entrypoint: >
+      sh -c '
+      echo "Checking if auth-service is reachable...";
+      curl -v http://auth-service:8080/api/users/sample-get || echo "Failed to reach auth-service";
+      until curl -sf http://auth-service:8080/api/users/sample-get | grep -q "OKAY"; do
+        echo "Waiting for auth-service to be healthy...";
+        sleep 10;
+      done;
+      echo "auth-service is healthy. Starting nginx.";
+      nginx -g "daemon off;"'
+    ports:
+      - "80:80"
+      - "443:443"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

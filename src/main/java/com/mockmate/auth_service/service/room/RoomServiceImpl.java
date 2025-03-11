@@ -154,7 +154,7 @@ public class RoomServiceImpl  implements RoomService{
 
 
 
-                // If peer status is also WAITING_TO_JOIN OR IN_PROGRESS, create the room and notify users
+                // If peer status is also WAITING_TO_JOIN, create the room and notify users
                 if (peerInterview.getStatus().getStatusName().equals(InterviewStatusEnum.WAITING_TO_JOIN.getValue())) {
                     String roomHash = getRoomHashFromInterviewId(upcomingInterview.getUpcomingInterviewId()  , peerInterview.getUpcomingInterviewId());
 
@@ -178,8 +178,6 @@ public class RoomServiceImpl  implements RoomService{
                             "Waiting",
                             "Room created successfully. Notify peer."
                     );
-
-
                 } else {
                     // Check the conditions
                     if (differenceInSeconds>0 && differenceInSeconds > THRESHOLD_WAIT_IN_SECONDS) {
@@ -343,6 +341,5 @@ public class RoomServiceImpl  implements RoomService{
                 .peer1(peer1)
                 .peer2(peer2)
                 .build();
-
     }
 }

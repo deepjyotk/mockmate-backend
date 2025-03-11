@@ -75,8 +75,8 @@ public class QuestionServiceImpl implements QuestionService {
 
         // Handle Tags
         List<QTag> qTags = requestDTO.getTags().stream()
-                .map(tags -> qTagRepository.findByTagId(tags.getTagId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Tag Id not found with id: "+ tags.getTagId())))
+                .map(tags -> qTagRepository.findByTagId(tags.getTagID())
+                        .orElseThrow(() -> new ResourceNotFoundException("Tag Id not found with id: "+ tags.getTagID())))
                         .toList();
 
         Set<QuestionCompany> companyAssociations = requestDTO.getCompanies().stream()

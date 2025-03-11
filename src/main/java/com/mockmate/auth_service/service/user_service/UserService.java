@@ -85,20 +85,64 @@ public class UserService implements IUserService {
     }
 
 
+    private UserEntity getUserEntity(String userOrEmail){
+
+        Optional<UserEntity> existingUser;
+
+        // Determine if the input is an email or username
+        if (userOrEmail.contains("@")) {
+            existingUser = userRepository.findByEmail(userOrEmail);
+        } else {
+            existingUser = userRepository.findByUsername(userOrEmail);
+        }
+
+        if (existingUser.isEmpty()) {
+            throw new RuntimeException("Invalid username/email or password!");
+        }
+
+        return existingUser.get();
+    }
+
+
+    @Override
+    public String getUsername(Long userID) {
+        Optional<UserEntity> existingUser = userRepository.findById(userID);
+        if(existingUser.isEmpty()){
+            throw new ResourceNotFoundException("User "+userID+" does not exist"  );
+        }else{
+            return existingUser.get().getUsername() ;
+        }
+    }
+
+    @Override
+    public boolean usernameOrEmailExists(String userNameOrEmail){
+        Optional<UserEntity> existingUser = userRepository.findByUsername(userNameOrEmail);
+        Optional<UserEntity> existingEmail = userRepository.findByEmail(userNameOrEmail);
+
+        return existingEmail.isPresent() || existingUser.isPresent();
+    }
+
+
+    @Override
+    public String generateJwtToken(String userNameOrEmail) {
+        var user = getUserEntity(userNameOrEmail);
+
+        return jwtUtils.generateToken(user);
+    }
+
     @Override
     public RegisterResponseDto register(RegisterRequestDto request) {
         // Check if the user already exists
         Optional<UserEntity> existingUser = userRepository.findByUsername(request.getUsername());
         Optional<UserEntity> existingEmail = userRepository.findByEmail(request.getEmail());
 
-        if (existingUser.isPresent() && existingEmail.isPresent() ) {
+        if (usernameOrEmailExists(request.getUsername()) ) {
             throw new UsernameAlreadyExistsException(request.getUsername());
-        }else if(existingEmail.isPresent()){
+        }else if(existingEmail.isPresent() ){
             throw new EmailAlreadyExistsException(request.getEmail());
         }else if(existingUser.isPresent()){
             throw new EmailAlreadyExistsException(request.getUsername());
         }
-
         // Convert RegisterRequest to UserEntity
         UserEntity user = UserMapper.toEntity(request);
 
@@ -124,21 +168,7 @@ public class UserService implements IUserService {
     }
     @Override
     public LoginResponseDto login(LoginRequestDto request) {
-        String userOrEmail = request.getUserOrEmail();
-        Optional<UserEntity> existingUser;
-
-        // Determine if the input is an email or username
-        if (userOrEmail.contains("@")) {
-            existingUser = userRepository.findByEmail(userOrEmail);
-        } else {
-            existingUser = userRepository.findByUsername(userOrEmail);
-        }
-
-        if (existingUser.isEmpty()) {
-            throw new RuntimeException("Invalid username/email or password!");
-        }
-
-        UserEntity user = existingUser.get();
+        var user = getUserEntity(request.getUserOrEmail());
 
         // Validate password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
@@ -148,11 +178,13 @@ public class UserService implements IUserService {
         // Generate JWT token
         String token = jwtUtils.generateToken(user);
 
+
         // Return LoginResponse with token, message, and username/email
         return new LoginResponseDto(
-                token,
+
                 "Login successful",
-                user.getUsername() // You can choose to return email or username based on your requirements
+                user.getUsername(), // You can choose to return email or username based on your requirements
+                user.getEmail()
         );
     }
 
@@ -252,6 +284,7 @@ public class UserService implements IUserService {
      */
     @Transactional
     public void cleanUpcomingInterviews(Long userId) {
+
         // Get current time in UTC
         OffsetDateTime currentTime = OffsetDateTime.now();
 
@@ -404,8 +437,6 @@ public class UserService implements IUserService {
             );
             dto.setPeerUser(peerUserDto);
         }
-
         return dto;
     }
-
 }

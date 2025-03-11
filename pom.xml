@@ -10,10 +10,10 @@
 	</parent>
 
 	<groupId>com.mockmate</groupId>
-	<artifactId>auth-service</artifactId>
+	<artifactId>mockmate-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>auth-service</name>
-	<description>Authentication project for Spring Boot</description>
+	<name>mockmate-api</name>
+	<description>Backend APIs for MockMate</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -134,6 +134,12 @@
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.12.777</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 
 	</dependencies>
 

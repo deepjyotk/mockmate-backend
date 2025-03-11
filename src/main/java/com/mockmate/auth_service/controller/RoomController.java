@@ -1,5 +1,4 @@
 package com.mockmate.auth_service.controller;
-
 import com.mockmate.auth_service.dto.ResponseDto;
 import com.mockmate.auth_service.dto.room.ChangeInterviewRoleResponseDTO;
 import com.mockmate.auth_service.dto.room.ChangeRoleRequestDTO;
@@ -33,7 +32,7 @@ public class RoomController {
     })
     @PostMapping("/join-waiting-room")
     public ResponseEntity<ResponseDto<RoomResponseDto>> joinWaitingRoom(@RequestParam Long interviewId) {
-        // Call the service to process room creation or joining
+
         var response  = roomService.createOrJoinRoom(interviewId) ;
         var res2 = new ResponseDto<RoomResponseDto>(response, HttpStatus.OK);
 

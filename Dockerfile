@@ -13,6 +13,9 @@ RUN mvn clean package -DskipTests
 FROM amazoncorretto:21.0.4-alpine
 WORKDIR /app
 
+# Install curl for the health check
+RUN apk update && apk add --no-cache curl
+
 # Copy the JAR file from the build stage
 COPY --from=build /app/target/*.jar /app/app.jar
 
